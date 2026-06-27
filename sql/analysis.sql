@@ -1,4 +1,4 @@
-# быстрая проверка сколько строк в каждой таблице
+# быстрая прверка сколько строк в каждой таблице
 SELECT 'clients' AS table_name, COUNT(*) AS rows_count FROM clients
 UNION ALL
 SELECT 'campaigns', COUNT(*) FROM campaigns
@@ -12,16 +12,14 @@ UNION ALL
 SELECT 'loan_applications', COUNT(*) FROM loan_applications
 ORDER BY rows_count DESC;
 
--- нет ли дублей клиента в одной и той же кампании
-SELECT
-    campaign_id,
-    client_id,
+# нет ли дублей клиента в одной и той же кампании
+SELECT campaign_id, client_id,
     COUNT(*) AS records_count
 FROM campaign_audience
 GROUP BY campaign_id, client_id
 HAVING COUNT(*) > 1;
 
--- проверка пропусков в ключевых полях клиентской базы
+# проверка пропусков в ключевых полях клиентской базы
 SELECT
     SUM(CASE WHEN client_id IS NULL THEN 1 ELSE 0 END) AS missing_client_id,
     SUM(CASE WHEN segment IS NULL THEN 1 ELSE 0 END) AS missing_segment,
@@ -29,9 +27,8 @@ SELECT
     SUM(CASE WHEN age IS NULL THEN 1 ELSE 0 END) AS missing_age
 FROM clients;
 
--- профиль клиентской базы по сегментам
-SELECT
-    segment,
+# профиль клиентской базы по сегментaм
+SELECT segment,
     COUNT(*) AS clients,
     ROUND(AVG(age), 1) AS avg_age,
     SUM(CASE WHEN is_active THEN 1 ELSE 0 END) AS active_clients,
@@ -40,8 +37,8 @@ FROM clients
 GROUP BY segment
 ORDER BY clients DESC;
 
--- основная воронка: sent -> delivered -> opened -> clicked -> заявка -> одобрение
--- окно конверсии - 7 дней с момента попадания в аудиторию кампании
+# основная воронка: sent - delivered - opened - clicked - заявка - одобрение
+# окно конверсии - 7 дней с момента попадания в аудиторию кампании
 WITH event_flags AS (
     SELECT
         m.message_id,
@@ -120,7 +117,7 @@ FROM final
 GROUP BY campaign_name, channel
 ORDER BY conversion_rate DESC;
 
--- то же самое, но разбито на test/control, чтобы посчитать аплифт
+# то же самое, но разбито на test/control, чтобы посчитать аплифт
 WITH conversions AS (
     SELECT
         ca.campaign_id,
@@ -149,7 +146,7 @@ group_metrics AS (
     GROUP BY c.campaign_name, c.channel, group_type
 ),
 pivoted AS (
-    -- разворачиваю test/control в колонки, чтобы было легко сравнить
+    # разворачиваю test/control в колонки, чтобы было легко сравнить
     SELECT
         campaign_name,
         channel,
@@ -172,7 +169,7 @@ SELECT
 FROM pivoted
 ORDER BY uplift_pp DESC;
 
--- конверсия в разрезе кампания x сегмент клиента
+# конверсия в разрезе кампания на сегмент клиента
 WITH conversions AS (
     SELECT
         ca.campaign_id,
@@ -248,7 +245,7 @@ LEFT JOIN converted_clients conv
 WHERE conv.client_id IS NULL
 ORDER BY c.campaign_name, cl.segment, cc.client_id;
 
--- проверка на всякий случай: события не должны происходить раньше отправки сообщения
+# проверка на всякий случай, события не должны происходить раньше отправки сообщения
 SELECT
     m.message_id,
     m.sent_at,
@@ -258,7 +255,7 @@ FROM messages m
 JOIN message_events e ON m.message_id = e.message_id
 WHERE e.event_at < m.sent_at;
 
--- и ещё одна проверка: control-группе не должны были отправлять сообщения
+# и ещё одна проверка, contrl-группе не должны были отправлять сообщения
 SELECT
     ca.campaign_id,
     ca.client_id,
