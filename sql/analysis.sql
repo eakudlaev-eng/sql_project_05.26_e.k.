@@ -1,4 +1,4 @@
--- быстрая проверка: сколько строк в каждой таблице
+# быстрая проверка сколько строк в каждой таблице
 SELECT 'clients' AS table_name, COUNT(*) AS rows_count FROM clients
 UNION ALL
 SELECT 'campaigns', COUNT(*) FROM campaigns
